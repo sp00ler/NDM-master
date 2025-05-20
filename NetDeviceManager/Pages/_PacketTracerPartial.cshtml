@@ -1,0 +1,72 @@
+﻿@using NetDeviceManager.Models
+@model List<string>
+
+@{
+    // Словарь сопоставления: имя -> интерфейс
+    Dictionary<string, string> interfaceMap = new()
+    {
+        { "INTERNET", "GigabitEthernet0/0" },
+        { "WAN", "GigabitEthernet0/1" },
+        { "DMZ", "GigabitEthernet0/2" },
+        { "USERS", "GigabitEthernet0/3" },
+        { "ADMINS", "GigabitEthernet0/4" },
+        { "APP_SERVERS", "GigabitEthernet0/5" },
+        { "MANAGE", "Management0/0" }, // если нужно
+    };
+
+    List<SelectListItem> ifs = new();
+
+    foreach (var name in Model)
+    {
+        if (interfaceMap.TryGetValue(name, out string iface))
+        {
+            ifs.Add(new SelectListItem()
+                    {
+                        Value = name, // Или iface, если нужно передавать интерфейс
+                        Text = $"{iface} ({name})"
+                    });
+        }
+        else
+        {
+            // На случай, если имя не найдено в словаре
+            ifs.Add(new SelectListItem() { Value = name, Text = name });
+        }
+    }
+
+    List<SelectListItem> protos = new() {
+        new SelectListItem { Value = "icmp", Text = "icmp" },
+        new SelectListItem { Value = "tcp", Text = "tcp" },
+        new SelectListItem { Value = "udp", Text = "udp" },
+    };
+}
+
+<form id="packet-tracer-form">
+    <div class="row">
+        <div class="form-group col-6">
+            <label class="control-label">Интерфейс</label>
+            <select name="ifname" asp-items="@ifs" class="form-control"></select>
+        </div>
+        <div class="form-group col-6">
+            <label class="control-label">Протокол</label>
+            <select name="proto" asp-items="@protos" class="form-control"></select>
+        </div>
+        <div class="form-group col-4">
+            <input name="src_addr" class="form-control" placeholder="Из">
+        </div>
+        <div class="form-group col-2">
+            <input name="src_port" class="form-control" placeholder="порт" min="0">
+        </div>
+        <div class="form-group col-4">
+            <input name="dst_addr" class="form-control" placeholder="В">
+        </div>
+        <div class="form-group col-2">
+            <input name="dst_port" class="form-control" placeholder="порт" min="0">
+        </div>
+        <input name="s_id" hidden />
+    </div>
+
+    <div class="form-group">
+        <div class="text-danger" id="packet-tracer-error"></div>
+        <input type="button" value="Проверить" class="btn btn-primary" id="packet-tracer-btn" onclick="PacketTracerBtn()" />
+    </div>
+</form>

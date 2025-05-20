@@ -1,0 +1,32 @@
+﻿@using NetDeviceManager.Models
+@model Object_Group
+
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title">Удалить объект из @Model.Name</h4>
+    </div>
+    @* method="post" asp-page-handler="OpenSession" *@
+    <div class="modal-body">
+        <form id="delete-object-group-form" method="post" asp-page-handler="DeleteObjectGroup">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label class="control-label">Объект</label>
+                <select name="ip_id" asp-items="@ListItemsTools.SelectFromObjectGroup(Model)" class="form-control"></select>
+            </div>
+
+            <div class="text-danger" id="delete-object-group-error"></div>
+            <input name="s_id" hidden />
+            <input name="og_name" hidden value="@Model.Name" />
+            <div class="form-group">
+                <input id="delete-object-group-btn" type="button" value="Удалить" class="btn btn-danger" onclick="Test()" />
+            </div>
+          
+        </form>
+    </div>
+
+    @*<div class="modal-footer">
+    </div>*@
+</div>
+

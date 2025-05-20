@@ -1,0 +1,37 @@
+﻿@using NetDeviceManager.Models
+@model Object_Group
+
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title">Добавить группу</h4>
+    </div>
+    @* method="post" asp-page-handler="OpenSession" *@
+    <div class="modal-body">
+        <form id="add-object-group-form" method="post" asp-page-handler="AddObjectGroup">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Название</label>
+                <input id="add-object-group-name" name="name" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">Адрес</label>
+                <input name="addr" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">Маска</label>
+                <select name="mask" asp-items="ListItemsTools.SelectListItems" class="form-control"></select>
+            </div>
+            <div class="text-danger" id="add-object-group-error"></div>
+            <input name="s_id" hidden />
+            <div class="form-group">
+                <input id="add-object-group-btn" type="button" value="Добавить" class="btn btn-primary" />
+            </div>
+          
+        </form>
+    </div>
+
+    @*<div class="modal-footer">
+    </div>*@
+</div>
+

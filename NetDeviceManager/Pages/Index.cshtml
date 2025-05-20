@@ -1,0 +1,138 @@
+﻿@page
+@using NetDeviceManager.Models
+@model IndexModel
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<div style="display: flex; flex-direction:row; margin:10px">
+    @foreach (var dev in Model.Devices)
+    {
+        <div class="device-container" id="dev-item-@dev.Item1.Id" style="width: 200px;height: 350px; background-color: #00000033;">
+            <div style="margin: 2px;align-self: stretch; display: flex; flex-direction: row; justify-content: space-between">
+                <div style="width:20px; height:20px;background-color: @(dev.Item2 == 0 ? "red" : "green"); border-radius:10px">
+                </div>
+
+                <form asp-page-handler="DeleteDevice" method="post">
+                    <input hidden name="Device.Id" value="@dev.Item1.Id" />
+                    <button type="submit" class="btn-close" style="font-size:small"> </button>
+                </form>
+            </div>
+
+            <div>
+                @{
+                    if (dev.Item1.Type == DevType.CiscoASA)
+                    {
+                        <img width=200px src=~/imgs/cisco_asa.png />
+                    }
+                    else if (dev.Item1.Type == DevType.CiscoIOS)
+                    {
+                        <img width=200px src=~/imgs/cisco_ios.png />
+                    }
+                }
+
+            </div>
+            <div style="margin-top: 10px; font-size:x-large">
+                @dev.Item1.Name
+            </div>
+            <div>
+                @(dev.Item1.IP + ":" + dev.Item1.Port)
+            </div>
+            @{
+                if (dev.Item2 == 0)
+                {
+                    <button type="button" class="btn btn-outline-primary" style="margin: 10px" onclick="ShowModalOpenSession(@dev.Item1.Id)">
+                        Открыть сессию
+                    </button>
+                }
+                else
+                {
+                    <form asp-page="Session" method="get">
+                        <input hidden name="s_id" value="@dev.Item2" />
+                        <input hidden name="d_id" value="@dev.Item1.Id" />
+                        <button type="submit" class="btn btn-success" style="margin: 10px">
+                            Перейти
+                        </button>
+                   </form>
+                }
+            }
+
+        </div>
+    }
+
+    <div class="device-container" style="width:200px;height:350px;">
+        <button type="button" class="btn btn-outline-primary plus" style="width: 100%; height:100%" onclick="ShowModalAddDevice()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+            </svg>
+        </button>
+    </div>
+
+</div>
+
+@if (Model.ErrorText != "" && Model.ErrorText != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    @Model.ErrorText
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+    </div>
+    
+}
+
+
+<div class="modal fade" id="open-session-modal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        @await Html.PartialAsync("_Creds", new Creds() /* new Tuple<Creds, int?>(new NetDeviceManager.Creds(), @dev.Item1.Id ) */)
+    </div>
+</div>
+
+<div class="modal fade" id="add-device" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        @await Html.PartialAsync("_AddDevice", new Device())
+    </div>
+</div>
+
+<div id='ModalPlaceholder'></div>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+
+<script>
+
+    function ShowModalAddDevice() {
+        $("div#add-device").modal('show');
+    }
+
+    function ShowModalOpenSession(id) {
+        $('input[name="device_id"]')[0].value = id;
+        $("#creds-error").text("");
+        $("div#open-session-modal").modal('show');
+
+    }
+
+    $('#creds-btn').on("click", function () {
+        $('#creds-btn')[0].value = "Хмм.."
+        var data = $("#creds-form").serialize();
+        $.ajax({
+            url: "?handler=OpenSession",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#creds-btn')[0].value = "Войти"
+                if (result.id != 0) {
+                    $("#creds-error").text("");
+                    $("div#open-session-modal").modal('hide');
+                    location.reload();
+                }
+                else {
+
+                    $("#creds-error").text(result.error);
+                }
+
+            },
+        });
+    })
+
+
+
+</script>

@@ -1,0 +1,297 @@
+syntax = "proto3";
+
+message Device_Info {
+  string hardware = 1;
+  string last_mod =2;
+  string hostname =3;
+}
+
+enum Proto {
+  ip = 0;
+  tcp = 1;
+  udp = 2;
+}
+
+enum Obj_Type {
+  OBJ_TYPE_HOST = 0;
+  OBJ_TYPE_OBJ = 1;
+  OBJ_TYPE_NET = 2;
+}
+
+message Service_Object {
+  Proto proto = 1;
+  optional string port = 2;
+  optional string port_to = 3;
+}
+
+message Access_List_Item {
+
+  Obj_Type obj_from_type = 1;
+  string obj_from = 2;
+
+  Obj_Type obj_to_type = 3;
+  string obj_to = 4;
+
+  bool allow = 5;
+
+  repeated Service_Object services = 6;
+
+  optional int32 line = 7;
+}
+
+message Access_List {
+  string name = 1;
+  repeated Access_List_Item items = 2;
+}
+
+
+message gRPC_IPv4{
+  string ip_address = 5;
+  string netmask = 6;
+}
+
+message gRPC_Interface {
+  string if_name = 1;
+  string if_zone = 2;
+  string status = 3;
+
+  string speed = 4;
+
+  gRPC_IPv4 ipv4 = 5;
+
+  string mac_address = 6;
+
+  optional int32 vlan_id = 7;
+  optional string in_access_group = 8;
+  optional string out_access_group = 9;
+}
+
+message Object_Group {
+  string name = 1;
+  repeated gRPC_IPv4 ipv4 = 2;
+}
+
+message Creds {
+  string username = 1;
+  string password = 2;
+  string secret = 3;
+}
+
+message Target {
+  string host = 1;
+  string port = 2;
+}
+
+message gRPC_Device {
+  string device_type = 1;
+  Target target = 2;
+  Creds creds = 3;
+}
+
+message PT_Phase {
+  string type = 1;
+  string result = 2;
+  string config = 3;
+  string extra = 4;
+}
+
+message PT_Result {
+  string action = 1;
+  string input_if = 2;
+  string output_if = 3;
+  string reason = 4;
+}
+
+message PTResponse {
+  repeated PT_Phase pt_phases = 1;
+  PT_Result pt_result = 2;
+}
+
+message PTRequest {
+  int32 id = 1;
+  string ifname = 2;
+  string proto = 3;
+  string src_ip = 4;
+  int32 src_port = 5;
+  string dst_ip = 6;
+  int32 dst_port = 7;
+}
+
+message OpenSessionRequest {
+  string user = 1;
+  gRPC_Device device = 2;
+}
+
+message OpenSessionResponse {
+  int32 id = 1;
+  string error = 2;
+}
+
+
+message GetInterfacesResponse {
+  repeated gRPC_Interface interfaces = 1;
+}
+
+message GetInterfaceRequest {
+  int32 id = 1;
+  string name = 2;
+}
+
+message GetInterfaceResponse {
+  gRPC_Interface interface = 1;
+}
+
+message GetInterfacesNamesResponse{
+  repeated string names = 1;
+}
+
+
+message GetSessionRequest {
+  string user = 1;
+  Target target = 2;
+}
+
+message GetSessionResponse {
+  int32 id = 1;
+}
+
+
+message GetDeviceInfoResponse {
+  Device_Info device_info = 1;
+}
+
+message GetObjectGroupsResponse {
+  repeated Object_Group object_groups = 1;
+}
+
+message AddObjectGroupRequest {
+  int32 id = 1;
+  string name = 2;
+}
+
+message AddObjectGroupItemRequest {
+  int32 id = 1;
+  string name = 2;
+  gRPC_IPv4 item = 3;
+}
+
+message DeleteObjectGroupRequest {
+  int32 id = 1;
+  string name = 2;
+}
+
+message DeleteObjectGroupItemRequest {
+  int32 id = 1;
+  string name = 2;
+  gRPC_IPv4 item = 3;
+}
+
+message AccessListRequest {
+  int32 id = 1;
+  string name = 2;
+}
+
+message GetAccessListsResponse {
+  repeated Access_List access_lists = 1;
+}
+
+message AddAccessListRequest {
+  int32 id = 1;
+  string name = 2;
+  Access_List_Item item = 3;
+}
+
+message DeleteAccessListItemRequest {
+  int32 id = 1;
+  string name = 2;
+  int32 line = 3;
+}
+
+
+message SetAccessGroupRequest {
+  int32 id = 1;
+  string ifname = 2;
+  string in_out = 3;
+  string aclname = 4;
+  optional string old_acl = 5;
+}
+
+message SetInterfaceAddressRequest {
+  int32 id = 1;
+  string ifname = 2;
+  gRPC_IPv4 ipv4 = 3;
+}
+
+message SetInterfaceZoneRequest {
+  int32 id = 1;
+  string ifname = 2;
+  string ifzone = 3;
+}
+
+
+message BoolResponse {
+  bool result = 1;
+}
+
+message IdRequest {
+  int32 id = 1;
+}
+
+message CheckSessionRequest {
+  string user = 1;
+  int32 session = 2;
+}
+
+message NetItem {
+  repeated gRPC_IPv4 ips = 1;
+  repeated Proto proto = 2;
+  repeated string port = 3;
+}
+
+message AccessFlow {
+  repeated NetItem srcs = 1;
+  repeated NetItem dsts = 2;
+}
+
+message AutoAccessRequest {
+  int32 id = 1;
+  repeated AccessFlow flows = 2;
+}
+
+service NDM_Service{
+    rpc OpenSession(OpenSessionRequest) returns (OpenSessionResponse) {}
+    rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {}
+    rpc CheckSession(CheckSessionRequest) returns (BoolResponse) {}
+
+    rpc GetInterfaces(IdRequest) returns (GetInterfacesResponse) {}
+    rpc GetInterfacesNames(IdRequest) returns (GetInterfacesNamesResponse) {}
+    rpc GetInterface(GetInterfaceRequest) returns (GetInterfaceResponse) {}
+    rpc SetAccessGroup(SetAccessGroupRequest) returns (BoolResponse) {}
+    rpc SetInterfaceAddress(SetInterfaceAddressRequest) returns (BoolResponse) {}
+    rpc SetInterfaceZone(SetInterfaceZoneRequest) returns (BoolResponse) {}
+
+
+    rpc GetObjectGroups(IdRequest) returns (GetObjectGroupsResponse) {}
+    rpc AddObjectGroup(AddObjectGroupRequest) returns (BoolResponse) {}
+    rpc AddObjectGroupItem(AddObjectGroupItemRequest) returns (BoolResponse) {}
+    rpc DeleteObjectGroup(DeleteObjectGroupRequest) returns (BoolResponse) {}
+    rpc DeleteObjectGroupItem(DeleteObjectGroupItemRequest) returns (BoolResponse) {}
+
+    rpc GetAccessList(AccessListRequest) returns (GetAccessListsResponse) {}
+    rpc GetAccessLists(IdRequest) returns (GetAccessListsResponse) {}
+    rpc AddAccessList(AddAccessListRequest) returns (BoolResponse) {}
+    rpc DeleteAccessList(AccessListRequest) returns (BoolResponse) {}
+    rpc DeleteAccessListItem(DeleteAccessListItemRequest) returns (BoolResponse) {}
+    rpc SortAccessList(AccessListRequest) returns (BoolResponse) {}
+
+    rpc PacketTracer(PTRequest) returns (PTResponse) {}
+
+    rpc AddAutoAccess(AutoAccessRequest) returns (BoolResponse) {}
+    rpc DeleteAutoAccess(AutoAccessRequest) returns (BoolResponse) {}
+
+    rpc GetDeviceInfo(IdRequest) returns (GetDeviceInfoResponse) {}
+    rpc RefreshSession(IdRequest) returns (BoolResponse) {}
+    rpc ClearPipe(IdRequest) returns (BoolResponse) {}
+
+    
+}

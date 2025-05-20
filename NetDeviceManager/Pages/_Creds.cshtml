@@ -1,0 +1,39 @@
+﻿@model Creds
+
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title" id="addDeviceLabel">Открыть сессию</h4>
+    </div>
+    @* method="post" asp-page-handler="OpenSession" *@
+    <div class="modal-body">
+        <form id="creds-form" method="post" asp-page-handler="OpenSession">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Username" class="control-label">Имя пользователя</label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label">Пароль пользователя</label>
+                <input asp-for="Password" class="form-control" type="password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Secret" class="control-label">Пароль для Enable устройства</label>
+                <input asp-for="Secret" class="form-control" type="password" />
+                <span asp-validation-for="Secret" class="text-danger"></span>
+            </div>
+            <div class="text-danger" id="creds-error"></div>
+            <input name="device_id" hidden />
+            <div class="form-group">
+                <input id="creds-btn" type="button" value="Войти" class="btn btn-primary" />
+            </div>
+          
+        </form>
+    </div>
+
+    @*<div class="modal-footer">
+    </div>*@
+</div>
+

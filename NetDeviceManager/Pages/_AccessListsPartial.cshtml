@@ -1,0 +1,125 @@
+﻿@model List<Access_List>
+
+
+<div class="accordion" id="accordionAccessLists">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="accessLists-heading-@i.ToString()">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accessLists-@i.ToString()" aria-expanded=@(i == 0 ? "true" : "false") aria-controls="accessLists-@i.ToString()">
+                    <div class="row" style="width: 100%">
+                        <div class="col-10">
+                            @Model[i].Name
+                        </div>
+
+                        <div class="col-1">
+                            (@Model[i].Items.Count)
+                        </div>
+
+                    </div>
+                </button>
+            </h2>
+        </div>
+        <div id="accessLists-@i.ToString()" class="accordion-collapse collapse in" aria-labelledby="accessLists-heading-@i.ToString()">
+            <div class="accordion-body">
+                <div style="display: flex;flex-wrap: wrap;flex-direction: row-reverse">
+                    <div class="row" style="width: 100%">
+                        <div class="col-1">
+                            <strong>№</strong>
+                        </div>
+                        <div class="col-1">
+                            <strong>Действие</strong>
+                        </div>
+                        <div class="col-3">
+                            <strong>Из</strong>
+                        </div>
+                        <div class="col-3">
+                            <strong>В</strong>
+                        </div>
+                        <div class="col-1">
+                            <strong>Прот.</strong>
+                        </div>
+                        <div class="col-1">
+                            <strong>Порты</strong>
+                        </div>
+                        <div class="col-1">
+                            
+                        </div>
+
+                    </div>
+                    @for (int c = 0; c < Model[i].Items.Count; c++)
+                    {
+                        <div class="row" style="width: 100%">
+                            
+                            <div class="col-1">
+                                @Model[i].Items[c].Line
+                            </div>
+                            <div class="col-1">
+                                @if (Model[i].Items[c].Allow)
+                                {
+                                    <i class="bi bi-check-circle fs-5"></i>
+                                } else
+                                {
+                                    <i class="bi bi-ban fs-5"></i>
+                                }
+                            </div>
+                            <div class="col-3 text-truncate">
+                                @Model[i].Items[c].ObjFrom
+                            </div>
+                            <div class="col-3 text-truncate">
+                                @Model[i].Items[c].ObjTo
+                            </div>
+                            <div class="col-1 text-truncate">
+                                @string.Join(" ", Model[i].Items[c].Services.Select(x => x.Proto).Distinct())
+                            </div>
+                            <div class="col-1 text-truncate">
+                                @string.Join(" ", Model[i].Items[c].Services.Select(x => x.Port).Distinct())
+
+                            </div>
+                            <div class="col-1">
+                                @if (Model[i].Items[c].Services.Select(x => x.Proto).Distinct().Contains(Proto.Ip) || 
+                                    Model[i].Items[c].Services.Select(x => x.Port).Distinct().Count() > 10)
+                                {
+                                    <i class="bi bi-exclamation-circle text-warning fs-5"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Правило слишком широкое"></i>
+                                }
+                                
+                            </div>
+
+                            <div class="col-auto pe-0">
+                                <button style="margin: 1px" class="btn btn-sm rounded-10 btn-outline-danger" type="button" data-toggle="tooltip" data-placement="top" title="Удалить" onclick="DeleteAccessListItem('@Model[i].Name', @Model[i].Items[c].Line)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                                        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                        </div>
+                    }
+                    <div style="margin: 10px">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm rounded-10 btn-outline-primary" type="button" data-toggle="tooltip" data-placement="top" title="Добавить" onclick="ShowAddAccessListItem('@Model[i].Name')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-sm rounded-10 btn-outline-danger" type="button" data-toggle="tooltip" data-placement="top" title="Удалить" onclick="DeleteAccessList('@Model[i].Name')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    }
+
+
+</div>

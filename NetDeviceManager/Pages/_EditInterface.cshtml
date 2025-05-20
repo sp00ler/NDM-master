@@ -1,0 +1,76 @@
+﻿@using NetDeviceManager.Models
+@model Tuple<gRPC_Interface, List<string>>
+
+@{
+    List<SelectListItem> acl_in = new();
+    List<SelectListItem> acl_out = new();
+    acl_in.Add(new SelectListItem() { Value = "", Text = "Ничего" });
+    acl_out.Add(new SelectListItem() { Value = "", Text = "Ничего" });
+    foreach(var i in Model.Item2)
+    {
+        acl_in.Add(new SelectListItem() { Value = i, Text = i, Selected = (Model.Item1.InAccessGroup == i) });
+        acl_out.Add(new SelectListItem() { Value = i, Text = i, Selected = (Model.Item1.OutAccessGroup == i) });
+    }
+
+    // List<SelectListItem> acl_in = acls;
+    // acl_in.FirstOrDefault(a => a.Value == Model.Item1.InAccessGroup, acl_in[0]).Selected = true;
+
+    // List<SelectListItem> acl_out = acls;
+    // acl_out.FirstOrDefault(a => a.Value == Model.Item1.OutAccessGroup, acl_out[0]).Selected = true;
+
+    var masks = ListItemsTools.SelectListItems;
+    foreach (var mask in masks)
+    {
+        if(mask.Value == Model.Item1.Ipv4.Netmask)
+        {
+            mask.Selected = true;
+        }
+    }
+}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title">Редактировать интерфейс</h4>
+    </div>
+    @* method="post" asp-page-handler="OpenSession" *@
+    <div class="modal-body">
+        <form id="edit-interface-form" method="post" asp-page-handler="AddAcessListItem" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group col-6">
+                <label class="control-label">Интерфейс</label>
+                <input id="edit-interface-name" name="ifname" class="form-control" value="@Model.Item1.IfName" readonly />
+            </div>
+            <div class="form-group col-6">
+                <label class="control-label">Имя</label>
+                <input id="edit-interface-zone" name="ifzone" class="form-control" value="@Model.Item1.IfZone" />
+            </div>
+
+            <div class="form-group col-6">
+                <label class="control-label">Адрес</label>
+                <input name="addr" class="form-control" value="@Model.Item1.Ipv4.IpAddress"/>
+            </div>
+            <div class="form-group col-6">
+                <label class="control-label">Маска</label>
+                <select name="mask" asp-items="@masks" class="form-control"></select>
+            </div>
+
+            <div class="form-group col-6">
+                <label class="control-label">Входной список доступа</label>
+                <select name="acl_in" asp-items="acl_in" class="form-control"></select>
+            </div>
+            <div class="form-group col-6">
+                <label class="control-label">Выходной список доступа</label>
+                <select name="acl_out" asp-items="acl_out" class="form-control"></select>
+            </div>
+           
+            <div class="text-danger" id="edit-interface-error"></div>
+            <input name="s_id" hidden />
+            <div class="form-group">
+                <input id="edit-interface-btn" type="button" value="Сохранить" class="btn btn-primary" onclick="EditInterfaceBtn()"/>
+            </div>
+          
+        </form>
+    </div>
+
+</div>
+

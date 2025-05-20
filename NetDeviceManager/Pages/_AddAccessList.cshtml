@@ -1,0 +1,49 @@
+﻿@using NetDeviceManager.Models
+@model List<Object_Group>
+
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title">Добавить правило</h4>
+    </div>
+    @* method="post" asp-page-handler="OpenSession" *@
+    <div class="modal-body">
+        <form id="add-access-list-form" method="post" asp-page-handler="AddAcessListItem" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group col-12">
+                <label class="control-label">Список</label>
+                <input id="add-access-list-name" name="name" class="form-control" />
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label">Откуда</label>
+                <select name="obj_from" asp-items="@ListItemsTools.SelectFromObjectGroups(Model)" class="form-control"></select>
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label">Куда</label>
+                <select name="obj_to" asp-items="@ListItemsTools.SelectFromObjectGroups(Model)" class="form-control"></select>
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Протокол</label>
+                <select name="proto" asp-items="ListItemsTools.ProtoSelectListItems" class="form-control"></select>
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Действие</label>
+                <select name="allow" asp-items=@(new List<SelectListItem>{new SelectListItem("Запретить", "false"), new SelectListItem("Разрешить", "true")}) class="form-control"></select>
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Порт</label>
+                <input id="add-access-list-name" name="port" class="form-control" type="number" value="0"/>
+            </div>
+            <div class="text-danger" id="add-access-list-error"></div>
+            <input name="s_id" hidden />
+            <div class="form-group">
+                <input id="add-access-list-btn" type="button" value="Добавить" class="btn btn-primary" />
+            </div>
+          
+        </form>
+    </div>
+
+    @*<div class="modal-footer">
+    </div>*@
+</div>
+

@@ -1,0 +1,32 @@
+﻿@page
+@model NetDeviceManager.Pages.LoginModel
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<h1>Вход</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="User.Login" class="control-label">Логин</label>
+                <input required  asp-for="User.Login" class="form-control" />
+                <span asp-validation-for="User.Login" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="User.Password" class="control-label">Пароль</label>
+                <input required asp-for="User.Password" class="form-control" />
+                <span asp-validation-for="User.Password" class="text-danger"></span>
+            </div>
+            <div class="form-group" style="margin-top: 20px">
+                <input style="width: 100%" type="submit" value="Войти" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+

@@ -1,0 +1,471 @@
+﻿@page
+@using NetDeviceManager.Models
+@model SessionModel
+
+<h1>@Model.Device.Name</h1>
+
+<div style="width:40%">
+    <div>
+        <div><strong>Hostname: </strong>@Model.DeviceInfo.Hostname</div>
+        <div><strong>Hardware: </strong>@Model.DeviceInfo.Hardware</div>
+        <div><strong>Last mod: </strong>@Model.DeviceInfo.LastMod</div>
+    </div>
+</div>
+
+<hr />
+
+<!-- Вкладки -->
+<ul class="nav nav-tabs" id="mainTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="interfaces-tab" data-bs-toggle="tab" href="#interfaces" role="tab" aria-controls="interfaces" aria-selected="true">Интерфейсы</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" id="tracer-tab" data-bs-toggle="tab" href="#tracer" role="tab" aria-controls="tracer" aria-selected="false">Трассировка</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" id="groups-tab" data-bs-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Группы объектов</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" id="access-tab" data-bs-toggle="tab" href="#access" role="tab" aria-controls="access" aria-selected="false">Списки доступа</a>
+    </li>
+</ul>
+
+<!-- Контейнер с вкладками -->
+<div class="tab-content" id="mainTabContent" style="margin-top: 20px">
+    <!-- Интерфейсы -->
+    <div class="tab-pane fade show active" id="interfaces" role="tabpanel" aria-labelledby="interfaces-tab">
+        <div id="interfacesPartial"></div>
+    </div>
+
+    <!-- Трассировка -->
+    <div class="tab-pane fade" id="tracer" role="tabpanel" aria-labelledby="tracer-tab">
+        <div id="packetTracerPartial">
+            @await Html.PartialAsync("_PacketTracerPartial", Model.IfNames)
+        </div>
+        <div id="packetTracerResultPlaceholder"></div>
+    </div>
+
+    <!-- Группы объектов -->
+    <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+        <div style="display: flex;flex-direction: row;align-items: flex-end;justify-content: space-between;">
+            <h3>Группы объектов</h3>
+            <button class="btn btn-sm rounded-10 btn-outline-primary" type="button" title="Добавить" onclick="ShowAddObjectGroup()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="60px" height="30px" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                </svg>
+            </button>
+        </div>
+        <div id="objectGroupsPartial"></div>
+    </div>
+
+    <!-- Списки доступа -->
+    <div class="tab-pane fade" id="access" role="tabpanel" aria-labelledby="access-tab">
+        <div style="display: flex;flex-direction: row;align-items: flex-end;justify-content: space-between;">
+            <h3>Списки доступа</h3>
+            <button class="btn btn-sm rounded-10 btn-outline-primary" type="button" title="Добавить" onclick="ShowAddAccessListItem()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="60px" height="30px" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                </svg>
+            </button>
+        </div>
+        <div id="accessListsPartial"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-object-group-modal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        @await Html.PartialAsync("_AddObjectGroup", new Object_Group())
+    </div>
+</div>
+
+<div class="modal fade" id="add-access-list-modal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        @await Html.PartialAsync("_AddAccessList", Model.ObjectGroups)
+    </div>
+</div>
+
+<div class="modal fade" id="edit-interface-modal" role="dialog">
+    <div class="modal-dialog modal-lg d-flex justify-content-center" role="document" id="edit-interface-partial-container">
+    </div>
+</div>
+
+<div class="modal fade" id="delete-object-group-modal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" id="delete-object-group-partial-container">
+    </div>
+</div>
+
+
+<form id="deleteAccessListItemForm" hidden>
+    <input name="s_id" value="@Model.SessionId" />
+    <input name="line" />
+    <input name="name" />
+    @Html.AntiForgeryToken()
+</form>
+
+<form id="stayalive" hidden>
+    <input name="s_id" value="@Model.SessionId" />
+    @Html.AntiForgeryToken()
+</form>
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/lib/jquery.sortable.js"></script>
+
+<script>
+
+    function stayAlive() {
+
+        setTimeout(function () {
+
+            var data = $("#stayalive").serialize();
+            $.ajax({
+                url: "?handler=StayAlive",
+                type: "POST",
+                data: data,
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                error: function (result) {
+                    location.href = "/"
+                },
+            });
+
+            stayAlive();
+        }, 60000);
+    }
+    stayAlive();
+
+    function ShowAddObjectGroup() {
+        $("#add-object-group-name").value = "";
+        $('div#add-object-group-modal input[name="s_id"]')[0].value = @Model.SessionId;
+            $("#add-object-group-error").text("");
+        $("div#add-object-group-modal").modal('show');
+
+    }
+
+    function AccessListsLoad(s_id) {
+        $("#accessListsPartial").html('<div class="spinner-border" role="status"></div>');
+        $.ajax({
+            type: "POST",
+            url: "?handler=AccessListsPartial",
+            timeout: 120000,
+            data: { "s_id": s_id },
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            success: function (jsReturnArgs) {
+
+                $("#accessListsPartial").html(jsReturnArgs);
+            },
+            error: function (errorData) {
+                alert("Ошибка при загрузке списков доступа");
+                $("#accessListsPartial").html('<i class="bi bi-emoji-frown"> </i>');
+            }
+        });
+    }
+    function InterfacesLoad(s_id) {
+        $("#interfacesPartial").html('<div class="spinner-border" role="status"></div>');
+        $.ajax({
+            type: "POST",
+            url: "?handler=InterfacesPartial",
+            data: { "s_id": s_id },
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            success: function (jsReturnArgs) {
+
+                $("#interfacesPartial").html(jsReturnArgs)
+            },
+            error: function (errorData) {
+                alert("Ошибка при загрузке интерфейсов");
+                $("#interfacesPartial").html('<i class="bi bi-emoji-frown"> </i>');
+            }
+        });
+    }
+    function PacketTracerLoad(s_id) {
+        $("#packetTracerPartial").html('<div class="spinner-border" role="status"></div>')
+        $.ajax({
+            type: "POST",
+            url: "?handler=PacketTracerPartial",
+            data: { "s_id": s_id },
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            success: function (jsReturnArgs) {
+
+                c
+                $("#packetTracerPartial").html(jsReturnArgs)
+            },
+            error: function (errorData) {
+                alert("Ошибка при загрузке трассировки")
+                $("#packetTracerPartial").html('<i class="bi bi-emoji-frown"> </i>')
+            }
+        });
+    }
+    function ObjectGroupsLoad(s_id) {
+        $("#objectGroupsPartial").html('<div class="spinner-border" role="status"></div>')
+        $.ajax({
+            type: "POST",
+            url: "?handler=ObjectGroupsPartial",
+            data: { "s_id": s_id },
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            success: function (jsReturnArgs) {
+
+                $("#objectGroupsPartial").html(jsReturnArgs)
+            },
+            error: function (errorData) {
+                alert("Ошибка при загрузке групп объектов")
+                $("#objectGroupsPartial").html('<i class="bi bi-emoji-frown"> </i>')
+            }
+        });
+    }
+
+    InterfacesLoad(@Model.SessionId)
+    AccessListsLoad(@Model.SessionId)
+    ObjectGroupsLoad(@Model.SessionId)
+    // PacketTracerLoad(@Model.SessionId)
+
+    function ShowAddAccessListItem(name) {
+        $("#add-access-list-name").val(name)
+        $('div#add-access-list-modal input[name="s_id"]')[0].value = @Model.SessionId
+            $("#add-access-list-error").text("");
+        $("div#add-access-list-modal").modal('show');
+
+    }
+
+    function Test() {
+        $('#delete-object-group-btn')[0].value = "Удаление.."
+        var data = $("#delete-object-group-form").serialize();
+        $.ajax({
+            url: "?handler=DeleteObjectGroupItem",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#delete-object-group-btn')[0].value = "Удалить"
+                $("#delete-object-group-error").text("");
+                $("div#delete-object-group-modal").modal('hide');
+                // location.reload();
+                ObjectGroupsLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                $('#delete-object-group-btn')[0].value = "Удалить"
+                $("#delete-object-group-error").text(result.responseText);
+            }
+        });
+
+    }
+
+    function ShowAddObjectGroupItem(group) {
+
+        $("#add-object-group-name").val(group)
+        $('div#add-object-group-modal input[name="s_id"]')[0].value = @Model.SessionId
+            $("#add-object-group-error").text("");
+        $("div#add-object-group-modal").modal('show');
+
+    }
+
+    function ShowDeleteObjectGroup(group) {
+        $.ajax({
+            url: '?handler=DeleteObjectGroupPartial',
+            type: "POST",
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            data: { "s_id": @Model.SessionId, "obj_grp_name": group },
+            success: function (data) {
+                $('#delete-object-group-partial-container').html(data);
+                $("#delete-object-group-name").val(group)
+                $('#delete-object-group-form input[name="s_id"]')[0].value = @Model.SessionId
+                    $("#delete-object-group-error").text("");
+                $("div#delete-object-group-modal").modal('show');
+            }
+        });
+    }
+
+    function ShowEditInterface(interface, ifzone, addr, mask, in_acl, out_acl) {
+        $('#edit-interface-partial-container').html('<div class="spinner-grow" role="status"></div>')
+        $("div#edit-interface-modal").modal('show');
+        $.ajax({
+            url: '?handler=EditInterfacePartial',
+            type: "POST",
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            data: { "s_id": @Model.SessionId, "int_name": interface, "ifzone": ifzone, "addr": addr, "mask": mask, "acl_in": in_acl, "acl_out": out_acl },
+            success: function (data) {
+                $('#edit-interface-partial-container').html(data);
+                // $("#delete-object-group-name").val(group)
+                $('#edit-interface-form input[name="s_id"]')[0].value = @Model.SessionId
+                    // $("#delete-object-group-error").text("");
+                    $("div#edit-interface-modal").modal('show');
+            },
+            error: function (result) {
+                $("div#edit-interface-modal").modal('hide');
+            }
+        });
+    }
+
+    function DeleteAccessListItem(name, line) {
+        $('#deleteAccessListItemForm input[name="name"]')[0].value = name
+        $('#deleteAccessListItemForm input[name="line"]')[0].value = line
+        var data = $("#deleteAccessListItemForm").serialize();
+        $.ajax({
+            url: "?handler=DeleteAccessListItem",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+
+                // location.reload();
+                AccessListsLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                alert("Не удалось удалить объект")
+            }
+        });
+    }
+
+    function DeleteAccessList(name) {
+        if (confirm("Вы уверены, что хотите удалить " + name + "?")) {
+            $.ajax({
+                url: "?handler=DeleteAccessList",
+                type: "POST",
+                data: { "name": name, "s_id": @Model.SessionId },
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                success: function (result) {
+
+                    // location.reload();
+                    AccessListsLoad(@Model.SessionId)
+
+                },
+                error: function (result) {
+                    alert("Не удалось удалить объект")
+                }
+            });
+        }
+    }
+
+    $('#add-object-group-btn').on("click", function () {
+        $('#add-object-group-btn')[0].value = "Добавление.."
+        var data = $("#add-object-group-form").serialize();
+        $.ajax({
+            url: "?handler=AddObjectGroup",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#add-object-group-btn')[0].value = "Добавить"
+                $("#add-object-group-error").text("");
+                $("div#add-object-group-modal").modal('hide');
+                // location.reload();
+                ObjectGroupsLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                $('#add-object-group-btn')[0].value = "Добавить"
+                $("#add-object-group-error").text(result.responseText);
+            }
+        });
+    })
+
+    $('#add-access-list-btn').on("click", function () {
+        $('#add-access-list-btn')[0].value = "Добавление.."
+        var data = $("#add-access-list-form").serialize();
+        $.ajax({
+            url: "?handler=AddAccessList",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#add-access-list-btn')[0].value = "Добавить"
+                $("#add-access-list-error").text("");
+                $("div#add-access-list-modal").modal('hide');
+                // location.reload();
+                AccessListsLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                $('#add-access-list-btn')[0].value = "Добавить"
+                $("#add-access-list-error").text(result.responseText);
+            }
+        });
+    })
+
+    $('#delete-object-group-btn').on("click", function () {
+        $('#delete-object-group-btn')[0].value = "Удаление.."
+        var data = $("#delete-object-group-form").serialize();
+        $.ajax({
+            url: "?handler=DeleteObjectGroupItem",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#delete-object-group-btn')[0].value = "Удалить"
+                $("#delete-object-group-error").text("");
+                $("div#delete-object-group-modal").modal('hide');
+                // location.reload();
+                ObjectGroupsLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                $('#delete-object-group-btn')[0].value = "Удалить"
+                $("#delete-object-group-error").text(result.responseText);
+            }
+        });
+    })
+
+
+    function EditInterfaceBtn() {
+
+        $('#edit-interface-btn')[0].value = "Сохранение.."
+        var data = $("#edit-interface-form").serialize();
+        $.ajax({
+            url: "?handler=EditInterface",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#edit-interface-btn')[0].value = "Сохранить"
+                $("#edit-interface-error").text("");
+                $("div#edit-interface-modal").modal('hide');
+                // location.reload();
+                InterfacesLoad(@Model.SessionId)
+
+            },
+            error: function (result) {
+                $('#edit-interface-btn')[0].value = "Сохранить"
+                $("#edit-interface-error").text(result.responseText);
+            }
+        });
+
+    }
+
+    function PacketTracerBtn() {
+
+        $('#packet-tracer-btn')[0].value = "Проверка.."
+        $('#packet-tracer-form input[name="s_id"]')[0].value = @Model.SessionId
+        var data = $("#packet-tracer-form").serialize();
+        $.ajax({
+            url: "?handler=PacketTracer",
+            type: "POST",
+            data: data,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (result) {
+                $('#packet-tracer-btn')[0].value = "Проверить"
+                $("#packet-tracer-error").text("");
+                $("#packetTracerResultPlaceholder").html(result)
+                
+
+            },
+            error: function (result) {
+                console.log(result.responseText)
+                $('#packet-tracer-btn')[0].value = "Проверить"
+                $("#packet-tracer-error").text(result.responseText);
+            }
+        });
+
+    }
+
+
+
+</script>
