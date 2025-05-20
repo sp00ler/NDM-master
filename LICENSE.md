@@ -1,1 +1,0 @@
-this license by PDS
